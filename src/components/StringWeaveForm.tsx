@@ -10,8 +10,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Copy, Wand2, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-// Removed: import { removeWhitespace, type RemoveWhitespaceInput } from '@/ai/flows/remove-whitespace';
-// Removed: import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 type CharacterAdditionMode = 'none' | 'specific' | 'random';
 
@@ -21,7 +19,6 @@ export default function StringWeaveForm() {
   const [charAdditionMode, setCharAdditionMode] = useState<CharacterAdditionMode>('none');
   const [specificChar, setSpecificChar] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  // Removed: const [error, setError] = useState<string | null>(null);
   const [showOutput, setShowOutput] = useState(false);
 
   const { toast } = useToast();
@@ -46,8 +43,8 @@ export default function StringWeaveForm() {
 
     // Simulate a short delay for UX consistency, as direct processing is very fast
     setTimeout(() => {
-      // Static whitespace removal: replace all occurrences of one or more whitespace characters with a single space, then trim.
-      const strippedTextValue = inputText.split(/\s+/).join(' ').trim();
+      // Static whitespace removal: replace all occurrences of one or more whitespace characters with an empty string.
+      const strippedTextValue = inputText.replace(/\s+/g, '');
       let processedText = strippedTextValue;
 
       if (charAdditionMode === 'specific' && specificChar) {
@@ -60,7 +57,6 @@ export default function StringWeaveForm() {
         if (processedText.length > 0) { // Check if there's any text after stripping
             if (processedText.length === 1) {
                 // For a single character, no random characters are woven.
-                // This matches the original behavior where slice(0,-1) on "aR" resulted in "a".
             } else {
                 processedText = processedText
                     .split('')
@@ -79,10 +75,16 @@ export default function StringWeaveForm() {
   };
   
   useEffect(() => {
-    if (outputText) {
-      setShowOutput(true);
+    if (outputText || isProcessing) { // Ensure fade-in also happens if outputText was already there but hidden
+      if (outputText && !isProcessing) { // Only trigger fade-in for actual new output
+         setShowOutput(true);
+      } else if (!outputText && !isProcessing) { // If processing finishes and output is empty, hide
+         setShowOutput(false);
+      }
+      // If isProcessing is true, we wait for it to become false.
+      // If outputText becomes empty during processing (e.g. input cleared), it will hide on next non-processing render
     }
-  }, [outputText]);
+  }, [outputText, isProcessing]);
 
 
   const handleCopyText = () => {
@@ -143,7 +145,7 @@ export default function StringWeaveForm() {
                 type="text"
                 placeholder="Enter character to weave (e.g., -, _, *)"
                 value={specificChar}
-                onChange={(e) => setSpecificChar(e.target.value)}
+                onChange={(e) => setSpecificChar(e.target.value.slice(0,1))}
                 maxLength={1}
                 className="mt-1 ml-6 w-full max-w-xs focus:ring-accent focus:border-accent"
                 aria-label="Specific character input"
@@ -155,15 +157,6 @@ export default function StringWeaveForm() {
             </div>
           </RadioGroup>
         </div>
-
-        {/* Removed Error Alert
-        {error && (
-          <Alert variant="destructive">
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        */}
 
         <Button
           onClick={handleProcessText}
@@ -178,8 +171,8 @@ export default function StringWeaveForm() {
           Weave String
         </Button>
 
-        { (outputText || isProcessing) && (
-          <div className={`space-y-2 transition-opacity duration-500 ease-in-out ${showOutput ? 'opacity-100' : 'opacity-0'}`}>
+        { (outputText || isProcessing || showOutput) && ( // Keep showing if processing or if output is meant to be shown
+          <div className={`space-y-2 transition-opacity duration-500 ease-in-out ${showOutput && !isProcessing ? 'opacity-100' : 'opacity-0'}`}>
             <Label htmlFor="outputText" className="text-lg">Woven String</Label>
             <div className="relative">
               <Textarea
@@ -190,7 +183,7 @@ export default function StringWeaveForm() {
                 placeholder="Your processed text will appear here..."
                 className="bg-muted/50 focus:ring-accent focus:border-accent"
               />
-              {outputText && (
+              {outputText && !isProcessing && (
                 <Button
                   variant="ghost"
                   size="icon"
@@ -206,8 +199,9 @@ export default function StringWeaveForm() {
         )}
       </CardContent>
       <CardFooter className="text-center justify-center">
-        <p className="text-xs text-muted-foreground">Powered by Next.js</p> {/* Updated text */}
+        <p className="text-xs text-muted-foreground">Powered by Next.js and static algorithms</p>
       </CardFooter>
     </Card>
   );
 }
+
