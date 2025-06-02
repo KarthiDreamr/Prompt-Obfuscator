@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -10,9 +11,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Inter', 'sans-serif'],
-        headline: ['Inter', 'sans-serif'],
-        code: ['monospace'],
+        body: ['Roboto Mono', 'monospace'], // Changed to monospace
+        headline: ['Roboto Mono', 'monospace'], // Changed to monospace
+        code: ['Roboto Mono', 'monospace'], // Ensured code is also monospace
       },
       colors: {
         background: 'hsl(var(--background))',
