@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Copy, Repeat } from 'lucide-react';
+import { Copy, Repeat, Space, Pilcrow } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 type CharacterAdditionMode = 'none' | 'specific' | 'random';
@@ -20,6 +20,8 @@ export default function StringWeaveForm() {
   const [charAdditionMode, setCharAdditionMode] = useState<CharacterAdditionMode>('none');
   const [specificChar, setSpecificChar] = useState('');
   const [shouldReverse, setShouldReverse] = useState(false);
+  const [shouldRemoveSpaces, setShouldRemoveSpaces] = useState(true);
+  const [shouldRemoveNewlines, setShouldRemoveNewlines] = useState(true);
   const [showOutput, setShowOutput] = useState(false);
 
   const { toast } = useToast();
@@ -30,19 +32,18 @@ export default function StringWeaveForm() {
   };
 
   const handleProcessText = () => {
-    if (!inputText.trim()) {
-      setOutputText('');
-      return;
-    }
+    let processedText = inputText;
 
-    const strippedTextValue = inputText.replace(/\s/g, '');
-    let processedText = strippedTextValue;
+    if (shouldRemoveNewlines) {
+      processedText = processedText.replace(/[\n\r]/g, '');
+    }
+    if (shouldRemoveSpaces) {
+      processedText = processedText.replace(/ /g, ''); 
+    }
 
     if (charAdditionMode === 'specific' && specificChar) {
       if (processedText.length > 0) {
           processedText = processedText.split('').join(specificChar);
-      } else {
-          processedText = "";
       }
     } else if (charAdditionMode === 'random') {
       if (processedText.length > 0) {
@@ -55,8 +56,6 @@ export default function StringWeaveForm() {
                   .join('')
                   .slice(0, -1);
           }
-      } else {
-          processedText = "";
       }
     }
     
@@ -69,17 +68,15 @@ export default function StringWeaveForm() {
 
   useEffect(() => {
     handleProcessText();
-  }, [inputText, charAdditionMode, specificChar, shouldReverse]);
+  }, [inputText, charAdditionMode, specificChar, shouldReverse, shouldRemoveSpaces, shouldRemoveNewlines]);
   
   useEffect(() => {
-    if (!inputText.trim()) {
-      setShowOutput(false);
-    } else if (outputText) {
+    if (inputText.trim()) {
       setShowOutput(true);
     } else {
       setShowOutput(false);
     }
-  }, [outputText, inputText]);
+  }, [inputText]);
 
 
   const handleCopyText = () => {
@@ -157,6 +154,28 @@ export default function StringWeaveForm() {
           <Label className="text-lg">Other Operations</Label>
           <div className="flex items-center space-x-2">
             <Checkbox
+              id="removeSpaces"
+              checked={shouldRemoveSpaces}
+              onCheckedChange={(checked) => setShouldRemoveSpaces(checked as boolean)}
+            />
+            <Label htmlFor="removeSpaces" className="font-normal flex items-center">
+              <Space className="mr-2 h-4 w-4" />
+              Remove spaces
+            </Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="removeNewlines"
+              checked={shouldRemoveNewlines}
+              onCheckedChange={(checked) => setShouldRemoveNewlines(checked as boolean)}
+            />
+            <Label htmlFor="removeNewlines" className="font-normal flex items-center">
+              <Pilcrow className="mr-2 h-4 w-4" />
+              Remove newlines
+            </Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
               id="reverseString"
               checked={shouldReverse}
               onCheckedChange={(checked) => setShouldReverse(checked as boolean)}
@@ -193,9 +212,10 @@ export default function StringWeaveForm() {
           </div>
         </div>
       </CardContent>
-      <CardFooter className="text-center justify-center">
-        {/* Footer content can go here if needed */}
+      <CardFooter className="text-center justify-center pt-4">
+        {/* Intentionally empty, footer text was removed in a previous step */}
       </CardFooter>
     </Card>
   );
 }
+
