@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -9,8 +10,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Copy, Wand2, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { removeWhitespace, type RemoveWhitespaceInput } from '@/ai/flows/remove-whitespace';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+// Removed: import { removeWhitespace, type RemoveWhitespaceInput } from '@/ai/flows/remove-whitespace';
+// Removed: import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 type CharacterAdditionMode = 'none' | 'specific' | 'random';
 
@@ -20,7 +21,7 @@ export default function StringWeaveForm() {
   const [charAdditionMode, setCharAdditionMode] = useState<CharacterAdditionMode>('none');
   const [specificChar, setSpecificChar] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Removed: const [error, setError] = useState<string | null>(null);
   const [showOutput, setShowOutput] = useState(false);
 
   const { toast } = useToast();
@@ -30,7 +31,7 @@ export default function StringWeaveForm() {
     return chars.charAt(Math.floor(Math.random() * chars.length));
   };
 
-  const handleProcessText = async () => {
+  const handleProcessText = () => {
     if (!inputText.trim()) {
       toast({
         title: 'Input Required',
@@ -41,40 +42,40 @@ export default function StringWeaveForm() {
     }
 
     setIsProcessing(true);
-    setError(null);
     setShowOutput(false); // Hide output before processing to trigger fade-in
 
-    try {
-      const aiInput: RemoveWhitespaceInput = { text: inputText };
-      const result = await removeWhitespace(aiInput);
-      let processedText = result.strippedText;
+    // Simulate a short delay for UX consistency, as direct processing is very fast
+    setTimeout(() => {
+      // Static whitespace removal: replace all occurrences of one or more whitespace characters with a single space, then trim.
+      const strippedTextValue = inputText.split(/\s+/).join(' ').trim();
+      let processedText = strippedTextValue;
 
       if (charAdditionMode === 'specific' && specificChar) {
-        processedText = processedText.split('').join(specificChar);
+        if (processedText.length > 0) {
+            processedText = processedText.split('').join(specificChar);
+        } else {
+            processedText = ""; // If stripped text is empty, adding specific char results in empty
+        }
       } else if (charAdditionMode === 'random') {
-        processedText = processedText
-          .split('')
-          .map((char) => char + getRandomAlphaNumeric())
-          .join('')
-          .slice(0, -1); // Remove last added random char
-         if (processedText.length === 0 && result.strippedText.length > 0) { // handle single char input for random
-            processedText = result.strippedText;
-         }
+        if (processedText.length > 0) { // Check if there's any text after stripping
+            if (processedText.length === 1) {
+                // For a single character, no random characters are woven.
+                // This matches the original behavior where slice(0,-1) on "aR" resulted in "a".
+            } else {
+                processedText = processedText
+                    .split('')
+                    .map((char) => char + getRandomAlphaNumeric())
+                    .join('')
+                    .slice(0, -1); // Remove the last added random character
+            }
+        } else {
+            processedText = ""; // If stripped text is empty, adding random chars results in empty
+        }
       }
       
       setOutputText(processedText);
-
-    } catch (e) {
-      console.error('Error processing text:', e);
-      setError('Failed to process text. Please try again.');
-      toast({
-        title: 'Processing Error',
-        description: 'An error occurred while processing your text.',
-        variant: 'destructive',
-      });
-    } finally {
       setIsProcessing(false);
-    }
+    }, 50); // 50ms delay
   };
   
   useEffect(() => {
@@ -155,12 +156,14 @@ export default function StringWeaveForm() {
           </RadioGroup>
         </div>
 
+        {/* Removed Error Alert
         {error && (
           <Alert variant="destructive">
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
+        */}
 
         <Button
           onClick={handleProcessText}
@@ -203,7 +206,7 @@ export default function StringWeaveForm() {
         )}
       </CardContent>
       <CardFooter className="text-center justify-center">
-        <p className="text-xs text-muted-foreground">Powered by GenAI & Next.js</p>
+        <p className="text-xs text-muted-foreground">Powered by Next.js</p> {/* Updated text */}
       </CardFooter>
     </Card>
   );
