@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Copy, Wand2, Loader2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Copy, Wand2, Loader2, Repeat } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 type CharacterAdditionMode = 'none' | 'specific' | 'random';
@@ -18,6 +19,7 @@ export default function StringWeaveForm() {
   const [outputText, setOutputText] = useState('');
   const [charAdditionMode, setCharAdditionMode] = useState<CharacterAdditionMode>('none');
   const [specificChar, setSpecificChar] = useState('');
+  const [shouldReverse, setShouldReverse] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showOutput, setShowOutput] = useState(false);
 
@@ -39,11 +41,9 @@ export default function StringWeaveForm() {
     }
 
     setIsProcessing(true);
-    setShowOutput(false); // Hide output before processing to trigger fade-in
+    setShowOutput(false); 
 
-    // Simulate a short delay for UX consistency, as direct processing is very fast
     setTimeout(() => {
-      // Static whitespace removal: replace all occurrences of one or more whitespace characters with an empty string.
       const strippedTextValue = inputText.replace(/\s+/g, '');
       let processedText = strippedTextValue;
 
@@ -51,10 +51,10 @@ export default function StringWeaveForm() {
         if (processedText.length > 0) {
             processedText = processedText.split('').join(specificChar);
         } else {
-            processedText = ""; // If stripped text is empty, adding specific char results in empty
+            processedText = ""; 
         }
       } else if (charAdditionMode === 'random') {
-        if (processedText.length > 0) { // Check if there's any text after stripping
+        if (processedText.length > 0) { 
             if (processedText.length === 1) {
                 // For a single character, no random characters are woven.
             } else {
@@ -62,27 +62,29 @@ export default function StringWeaveForm() {
                     .split('')
                     .map((char) => char + getRandomAlphaNumeric())
                     .join('')
-                    .slice(0, -1); // Remove the last added random character
+                    .slice(0, -1); 
             }
         } else {
-            processedText = ""; // If stripped text is empty, adding random chars results in empty
+            processedText = ""; 
         }
       }
       
+      if (shouldReverse) {
+        processedText = processedText.split('').reverse().join('');
+      }
+
       setOutputText(processedText);
       setIsProcessing(false);
-    }, 50); // 50ms delay
+    }, 50); 
   };
   
   useEffect(() => {
-    if (outputText || isProcessing) { // Ensure fade-in also happens if outputText was already there but hidden
-      if (outputText && !isProcessing) { // Only trigger fade-in for actual new output
+    if (outputText || isProcessing) { 
+      if (outputText && !isProcessing) { 
          setShowOutput(true);
-      } else if (!outputText && !isProcessing) { // If processing finishes and output is empty, hide
+      } else if (!outputText && !isProcessing) { 
          setShowOutput(false);
       }
-      // If isProcessing is true, we wait for it to become false.
-      // If outputText becomes empty during processing (e.g. input cleared), it will hide on next non-processing render
     }
   }, [outputText, isProcessing]);
 
@@ -158,6 +160,21 @@ export default function StringWeaveForm() {
           </RadioGroup>
         </div>
 
+        <div className="space-y-3">
+          <Label className="text-lg">Other Operations</Label>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="reverseString"
+              checked={shouldReverse}
+              onCheckedChange={(checked) => setShouldReverse(checked as boolean)}
+            />
+            <Label htmlFor="reverseString" className="font-normal flex items-center">
+              <Repeat className="mr-2 h-4 w-4" />
+              Reverse the final string
+            </Label>
+          </div>
+        </div>
+
         <Button
           onClick={handleProcessText}
           disabled={isProcessing || !inputText.trim()}
@@ -171,7 +188,7 @@ export default function StringWeaveForm() {
           Weave String
         </Button>
 
-        { (outputText || isProcessing || showOutput) && ( // Keep showing if processing or if output is meant to be shown
+        { (outputText || isProcessing || showOutput) && ( 
           <div className={`space-y-2 transition-opacity duration-500 ease-in-out ${showOutput && !isProcessing ? 'opacity-100' : 'opacity-0'}`}>
             <Label htmlFor="outputText" className="text-lg">Woven String</Label>
             <div className="relative">
@@ -204,4 +221,3 @@ export default function StringWeaveForm() {
     </Card>
   );
 }
-
