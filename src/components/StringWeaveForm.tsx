@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Copy, Wand2, Loader2, Repeat } from 'lucide-react';
+import { Copy, Repeat } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 type CharacterAdditionMode = 'none' | 'specific' | 'random';
@@ -20,7 +20,6 @@ export default function StringWeaveForm() {
   const [charAdditionMode, setCharAdditionMode] = useState<CharacterAdditionMode>('none');
   const [specificChar, setSpecificChar] = useState('');
   const [shouldReverse, setShouldReverse] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [showOutput, setShowOutput] = useState(false);
 
   const { toast } = useToast();
@@ -32,61 +31,55 @@ export default function StringWeaveForm() {
 
   const handleProcessText = () => {
     if (!inputText.trim()) {
-      toast({
-        title: 'Input Required',
-        description: 'Please enter some text to process.',
-        variant: 'destructive',
-      });
+      setOutputText('');
       return;
     }
 
-    setIsProcessing(true);
-    setShowOutput(false); 
+    const strippedTextValue = inputText.replace(/\s/g, '');
+    let processedText = strippedTextValue;
 
-    setTimeout(() => {
-      const strippedTextValue = inputText.replace(/\s+/g, '');
-      let processedText = strippedTextValue;
-
-      if (charAdditionMode === 'specific' && specificChar) {
-        if (processedText.length > 0) {
-            processedText = processedText.split('').join(specificChar);
-        } else {
-            processedText = ""; 
-        }
-      } else if (charAdditionMode === 'random') {
-        if (processedText.length > 0) { 
-            if (processedText.length === 1) {
-                // For a single character, no random characters are woven.
-            } else {
-                processedText = processedText
-                    .split('')
-                    .map((char) => char + getRandomAlphaNumeric())
-                    .join('')
-                    .slice(0, -1); 
-            }
-        } else {
-            processedText = ""; 
-        }
+    if (charAdditionMode === 'specific' && specificChar) {
+      if (processedText.length > 0) {
+          processedText = processedText.split('').join(specificChar);
+      } else {
+          processedText = "";
       }
-      
-      if (shouldReverse) {
-        processedText = processedText.split('').reverse().join('');
-      }
-
-      setOutputText(processedText);
-      setIsProcessing(false);
-    }, 50); 
-  };
-  
-  useEffect(() => {
-    if (outputText || isProcessing) { 
-      if (outputText && !isProcessing) { 
-         setShowOutput(true);
-      } else if (!outputText && !isProcessing) { 
-         setShowOutput(false);
+    } else if (charAdditionMode === 'random') {
+      if (processedText.length > 0) {
+          if (processedText.length === 1) {
+              // For a single character, no random characters are woven.
+          } else {
+              processedText = processedText
+                  .split('')
+                  .map((char) => char + getRandomAlphaNumeric())
+                  .join('')
+                  .slice(0, -1);
+          }
+      } else {
+          processedText = "";
       }
     }
-  }, [outputText, isProcessing]);
+    
+    if (shouldReverse) {
+      processedText = processedText.split('').reverse().join('');
+    }
+
+    setOutputText(processedText);
+  };
+
+  useEffect(() => {
+    handleProcessText();
+  }, [inputText, charAdditionMode, specificChar, shouldReverse]);
+  
+  useEffect(() => {
+    if (!inputText.trim()) {
+      setShowOutput(false);
+    } else if (outputText) {
+      setShowOutput(true);
+    } else {
+      setShowOutput(false);
+    }
+  }, [outputText, inputText]);
 
 
   const handleCopyText = () => {
@@ -112,7 +105,7 @@ export default function StringWeaveForm() {
     <Card className="w-full max-w-2xl shadow-xl">
       <CardHeader className="text-center">
         <CardTitle className="text-3xl font-headline tracking-tight">StringWeave</CardTitle>
-        <CardDescription>Enter your text, choose an option, and let us weave it for you!</CardDescription>
+        <CardDescription>Enter your text, choose an option, and watch it transform!</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-2">
@@ -145,7 +138,7 @@ export default function StringWeaveForm() {
             {charAdditionMode === 'specific' && (
               <Input
                 type="text"
-                placeholder="Enter character to weave (e.g., -, _, *)"
+                placeholder="Enter character (e.g., -, _, *)"
                 value={specificChar}
                 onChange={(e) => setSpecificChar(e.target.value.slice(0,1))}
                 maxLength={1}
@@ -175,48 +168,33 @@ export default function StringWeaveForm() {
           </div>
         </div>
 
-        <Button
-          onClick={handleProcessText}
-          disabled={isProcessing || !inputText.trim()}
-          className="w-full text-lg py-6 transform transition-transform duration-150 hover:scale-105 active:scale-95"
-        >
-          {isProcessing ? (
-            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-          ) : (
-            <Wand2 className="mr-2 h-5 w-5" />
-          )}
-          Weave String
-        </Button>
-
-        { (outputText || isProcessing || showOutput) && ( 
-          <div className={`space-y-2 transition-opacity duration-500 ease-in-out ${showOutput && !isProcessing ? 'opacity-100' : 'opacity-0'}`}>
-            <Label htmlFor="outputText" className="text-lg">Woven String</Label>
-            <div className="relative">
-              <Textarea
-                id="outputText"
-                value={outputText}
-                readOnly
-                rows={5}
-                placeholder="Your processed text will appear here..."
-                className="bg-muted/50 focus:ring-accent focus:border-accent"
-              />
-              {outputText && !isProcessing && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleCopyText}
-                  className="absolute top-2 right-2 text-muted-foreground hover:text-foreground transform transition-transform duration-150 hover:scale-110 active:scale-90"
-                  aria-label="Copy output text"
-                >
-                  <Copy className="h-5 w-5" />
-                </Button>
-              )}
-            </div>
+        <div className={`space-y-2 transition-opacity duration-300 ease-in-out ${showOutput ? 'opacity-100' : 'opacity-0'}`}>
+          <Label htmlFor="outputText" className="text-lg">Woven String</Label>
+          <div className="relative">
+            <Textarea
+              id="outputText"
+              value={outputText}
+              readOnly
+              rows={5}
+              placeholder="Your processed text will appear here..."
+              className="bg-muted/50 focus:ring-accent focus:border-accent"
+            />
+            {outputText && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleCopyText}
+                className="absolute top-2 right-2 text-muted-foreground hover:text-foreground transform transition-transform duration-150 hover:scale-110 active:scale-90"
+                aria-label="Copy output text"
+              >
+                <Copy className="h-5 w-5" />
+              </Button>
+            )}
           </div>
-        )}
+        </div>
       </CardContent>
       <CardFooter className="text-center justify-center">
-        <p className="text-xs text-muted-foreground">Powered by Next.js and static algorithms</p>
+        <p className="text-xs text-muted-foreground">String operations are applied automatically.</p>
       </CardFooter>
     </Card>
   );
