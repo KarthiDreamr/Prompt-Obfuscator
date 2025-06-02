@@ -24,8 +24,8 @@ export default function StringWeaveForm() {
 
   const { toast } = useToast();
 
-  const getRandomAlphaNumeric = (): string => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const getRandomCharacter = (): string => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{};\':"|,.<>/?~';
     return chars.charAt(Math.floor(Math.random() * chars.length));
   };
 
@@ -51,7 +51,7 @@ export default function StringWeaveForm() {
           } else {
               processedText = processedText
                   .split('')
-                  .map((char) => char + getRandomAlphaNumeric())
+                  .map((char) => char + getRandomCharacter())
                   .join('')
                   .slice(0, -1);
           }
@@ -148,7 +148,7 @@ export default function StringWeaveForm() {
             )}
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="random" id="random" />
-              <Label htmlFor="random" className="font-normal">Add random characters (A-Z, a-z, 0-9)</Label>
+              <Label htmlFor="random" className="font-normal">Add random characters (letters, numbers, common symbols)</Label>
             </div>
           </RadioGroup>
         </div>
@@ -194,7 +194,7 @@ export default function StringWeaveForm() {
         </div>
       </CardContent>
       <CardFooter className="text-center justify-center">
-        <p className="text-xs text-muted-foreground">String operations are applied automatically.</p>
+        {/* Removed the p tag that was here */}
       </CardFooter>
     </Card>
   );
