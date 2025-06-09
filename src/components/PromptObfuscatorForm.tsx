@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 
 type CharacterAdditionMode = 'none' | 'specific' | 'random';
 
-export default function StringWeaveForm() {
+export default function PromptObfuscatorForm() {
   const [inputText, setInputText] = useState('');
   const [outputText, setOutputText] = useState('');
   const [charAdditionMode, setCharAdditionMode] = useState<CharacterAdditionMode>('none');
@@ -101,7 +101,7 @@ export default function StringWeaveForm() {
   return (
     <Card className="w-full max-w-2xl shadow-xl">
       <CardHeader className="text-center">
-        <CardTitle className="text-3xl font-headline tracking-tight">StringWeave</CardTitle>
+        <CardTitle className="text-3xl font-headline tracking-tight">Prompt Obfuscator</CardTitle>
         <CardDescription>Enter your text, choose an option, and watch it transform!</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">

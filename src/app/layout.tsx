@@ -4,7 +4,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'StringWeave',
+  title: 'PromptObfuscator',
   description: 'Manipulate strings with ease: remove whitespace and weave in characters.',
 };
 

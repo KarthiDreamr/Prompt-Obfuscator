@@ -1,4 +1,4 @@
-# **App Name**: StringWeave
+# **App Name**: PromptObfuscator
 
 ## Core Features:
 
