@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -9,7 +8,13 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Copy, Repeat, Space, Pilcrow } from 'lucide-react';
+import {
+  Copy,
+  Repeat,
+  Space,
+  Pilcrow,
+  Github,
+} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 type CharacterAdditionMode = 'none' | 'specific' | 'random';
@@ -99,7 +104,7 @@ export default function PromptObfuscatorForm() {
   };
 
   return (
-    <Card className="w-full max-w-2xl shadow-xl">
+    <Card className="w-full max-w-5xl shadow-xl">
       <CardHeader className="text-center">
         <CardTitle className="text-3xl font-headline tracking-tight">Prompt Obfuscator</CardTitle>
         <CardDescription>Enter your text, choose an option, and watch it transform!</CardDescription>
@@ -212,8 +217,16 @@ export default function PromptObfuscatorForm() {
           </div>
         </div>
       </CardContent>
-      <CardFooter className="text-center justify-center pt-4">
-        {/* Intentionally empty, footer text was removed in a previous step */}
+      <CardFooter className="flex justify-center items-center p-4 border-t">
+        <a
+          href="https://github.com/KarthiDreamr/Prompt-Obfuscator"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <Github className="w-4 h-4 mr-2" />
+          Made by KarthiDreamr
+        </a>
       </CardFooter>
     </Card>
   );
