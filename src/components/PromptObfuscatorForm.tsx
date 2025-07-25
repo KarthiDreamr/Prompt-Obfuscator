@@ -1,5 +1,6 @@
 'use client';
 
+import React from "react";
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,11 +23,12 @@ type CharacterAdditionMode = 'none' | 'specific' | 'random';
 export default function PromptObfuscatorForm() {
   const [inputText, setInputText] = useState('');
   const [outputText, setOutputText] = useState('');
+  const [charInjectionEnabled, setCharInjectionEnabled] = useState(false);
   const [charAdditionMode, setCharAdditionMode] = useState<CharacterAdditionMode>('none');
   const [specificChar, setSpecificChar] = useState('');
   const [shouldReverse, setShouldReverse] = useState(false);
-  const [shouldRemoveSpaces, setShouldRemoveSpaces] = useState(true);
-  const [shouldRemoveNewlines, setShouldRemoveNewlines] = useState(true);
+  const [shouldRemoveSpaces, setShouldRemoveSpaces] = useState(false);
+  const [shouldRemoveNewlines, setShouldRemoveNewlines] = useState(false);
   const [showOutput, setShowOutput] = useState(false);
 
   const { toast } = useToast();
@@ -46,21 +48,23 @@ export default function PromptObfuscatorForm() {
       processedText = processedText.replace(/ /g, ''); 
     }
 
-    if (charAdditionMode === 'specific' && specificChar) {
-      if (processedText.length > 0) {
+    if (charInjectionEnabled) {
+      if (charAdditionMode === 'specific' && specificChar) {
+        if (processedText.length > 0) {
           processedText = processedText.split('').join(specificChar);
-      }
-    } else if (charAdditionMode === 'random') {
-      if (processedText.length > 0) {
+        }
+      } else if (charAdditionMode === 'random') {
+        if (processedText.length > 0) {
           if (processedText.length === 1) {
-              // For a single character, no random characters are woven.
+            // For a single character, no random characters are woven.
           } else {
-              processedText = processedText
-                  .split('')
-                  .map((char) => char + getRandomCharacter())
-                  .join('')
-                  .slice(0, -1);
+            processedText = processedText
+              .split('')
+              .map((char) => char + getRandomCharacter())
+              .join('')
+              .slice(0, -1);
           }
+        }
       }
     }
     
@@ -73,7 +77,7 @@ export default function PromptObfuscatorForm() {
 
   useEffect(() => {
     handleProcessText();
-  }, [inputText, charAdditionMode, specificChar, shouldReverse, shouldRemoveSpaces, shouldRemoveNewlines]);
+  }, [inputText, charInjectionEnabled, charAdditionMode, specificChar, shouldReverse, shouldRemoveSpaces, shouldRemoveNewlines]);
   
   useEffect(() => {
     if (inputText.trim()) {
@@ -111,7 +115,7 @@ export default function PromptObfuscatorForm() {
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="inputText" className="text-lg">Your Text</Label>
+          <Label htmlFor="inputText" className="text-lg">Input</Label>
           <Textarea
             id="inputText"
             placeholder="Paste or type your string here..."
@@ -123,40 +127,49 @@ export default function PromptObfuscatorForm() {
         </div>
 
         <div className="space-y-3">
-          <Label className="text-lg">Character Weaving Options</Label>
-          <RadioGroup
-            value={charAdditionMode}
-            onValueChange={(value) => setCharAdditionMode(value as CharacterAdditionMode)}
-            className="space-y-2"
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="none" id="none" />
-              <Label htmlFor="none" className="font-normal">No character addition</Label>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="charInjectionEnabled"
+              checked={charInjectionEnabled}
+              onCheckedChange={(checked) => setCharInjectionEnabled(checked as boolean)}
+            />
+            <Label htmlFor="charInjectionEnabled" className="font-normal">
+              Character Injection (Between Letters)
+            </Label>
+          </div>
+          {charInjectionEnabled && (
+            <div className="ml-6 space-y-2">
+              <RadioGroup
+                value={charAdditionMode}
+                onValueChange={(value) => setCharAdditionMode(value as CharacterAdditionMode)}
+                className="space-y-2"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="none" id="none" />
+                  <Label htmlFor="none" className="font-normal">No character addition</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="specific" id="specific" />
+                  <Label htmlFor="specific" className="font-normal">Add specific character</Label>
+                </div>
+                {charAdditionMode === 'specific' && (
+                  <Input
+                    type="text"
+                    placeholder="Enter character (e.g., -, _, *)"
+                    value={specificChar}
+                    onChange={(e) => setSpecificChar(e.target.value.slice(0,1))}
+                    maxLength={1}
+                    className="mt-1 ml-6 w-full max-w-xs focus:ring-accent focus:border-accent"
+                    aria-label="Specific character input"
+                  />
+                )}
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="random" id="random" />
+                  <Label htmlFor="random" className="font-normal">Add random symbols (e.g. !@#$%^&*)</Label>
+                </div>
+              </RadioGroup>
             </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="specific" id="specific" />
-              <Label htmlFor="specific" className="font-normal">Add specific character</Label>
-            </div>
-            {charAdditionMode === 'specific' && (
-              <Input
-                type="text"
-                placeholder="Enter character (e.g., -, _, *)"
-                value={specificChar}
-                onChange={(e) => setSpecificChar(e.target.value.slice(0,1))}
-                maxLength={1}
-                className="mt-1 ml-6 w-full max-w-xs focus:ring-accent focus:border-accent"
-                aria-label="Specific character input"
-              />
-            )}
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="random" id="random" />
-              <Label htmlFor="random" className="font-normal">Add random symbols (e.g. !@#$%^&*)</Label>
-            </div>
-          </RadioGroup>
-        </div>
-
-        <div className="space-y-3">
-          <Label className="text-lg">Other Operations</Label>
+          )}
           <div className="flex items-center space-x-2">
             <Checkbox
               id="removeSpaces"
@@ -164,7 +177,6 @@ export default function PromptObfuscatorForm() {
               onCheckedChange={(checked) => setShouldRemoveSpaces(checked as boolean)}
             />
             <Label htmlFor="removeSpaces" className="font-normal flex items-center">
-              <Space className="mr-2 h-4 w-4" />
               Remove spaces
             </Label>
           </div>
@@ -175,7 +187,6 @@ export default function PromptObfuscatorForm() {
               onCheckedChange={(checked) => setShouldRemoveNewlines(checked as boolean)}
             />
             <Label htmlFor="removeNewlines" className="font-normal flex items-center">
-              <Pilcrow className="mr-2 h-4 w-4" />
               Remove newlines
             </Label>
           </div>
@@ -186,14 +197,13 @@ export default function PromptObfuscatorForm() {
               onCheckedChange={(checked) => setShouldReverse(checked as boolean)}
             />
             <Label htmlFor="reverseString" className="font-normal flex items-center">
-              <Repeat className="mr-2 h-4 w-4" />
               Reverse the final string
             </Label>
           </div>
         </div>
 
         <div className={`space-y-2 transition-opacity duration-300 ease-in-out ${showOutput ? 'opacity-100' : 'opacity-0'}`}>
-          <Label htmlFor="outputText" className="text-lg">Woven String</Label>
+          <Label htmlFor="outputText" className="text-lg">Output</Label>
           <div className="relative">
             <Textarea
               id="outputText"

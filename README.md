@@ -49,6 +49,10 @@ This is a [Next.js](https://nextjs.org/) project.
     ```
     The application will be available at [http://localhost:9002](http://localhost:9002).
 
+## Testing
+
+For instructions on how to run the tests for this project, please see the [Testing Guide](./docs/test.md).
+
 ## Disclaimer
 
 This tool is intended for educational and research purposes in the field of AI safety and security. Users are responsible for their own actions and any consequences that may arise from using this tool.
